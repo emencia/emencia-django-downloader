@@ -1,0 +1,22 @@
+syntax: glob
+*.orig
+*.rej
+*~
+*.o
+tests/*.err
+*.pyc
+.installed.cfg
+emencia.django.downloader.egg-info/*
+bin/*
+eggs/*
+parts/*
+develop-eggs/*
+downloads/*
+src_eggs/*
+build/*
+dist/*
+lib/*
+include/*
+
+syntax: regexp
+.*\#.*\#$
