@@ -39,4 +39,5 @@ Instructions
     - Add the app 'emencia.django.downloader' in the settings.py django project's file
     - Import urls into your root urls.py file:: 
     
-    (r'^downloader/', include('emencia.django.downloader.urls')),
+        (r'^downloader/', include('emencia.django.downloader.urls')),
+    
