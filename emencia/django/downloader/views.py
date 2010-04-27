@@ -74,7 +74,7 @@ def upload(request):
                               })
             if sender_mail != '':
                 template = get_template('downloader/notify_sender.txt')
-                send_mail("Notification d'envoi de fichier via %s" % host,
+                send_mail("Confirmation de notification d'envoi de fichier via %s" % host,
                           template.render(context), 'notify@emencia.com',
                           (sender_mail,),
                           fail_silently=False)
@@ -102,3 +102,19 @@ def upload(request):
         'form': form,
     }
     return render_to_response('downloader/upload.html', data, RequestContext(request))
+
+
+def upload_progress(request):
+    """
+    Return JSON object with information about the progress of an upload.
+    """
+    if 'HTTP_X_PROGRESS_ID' in request.META:
+        progress_id = request.META['HTTP_X_PROGRESS_ID']
+        from django.utils import simplejson
+        cache_key = "%s_%s" % (request.META['REMOTE_ADDR'], progress_id)
+        data = cache.get(cache_key)
+        json = simplejson.dumps(data)
+        return HttpResponse(json)
+    else:
+        logging.error("Received progress report request without X-Progress-ID header. request.META: %s" % request.META)
+        return HttpResponseBadRequest('Server Error: You must provide X-Progress-ID header or query param.')
