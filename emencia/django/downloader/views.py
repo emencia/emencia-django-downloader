@@ -74,7 +74,7 @@ def upload(request):
                               })
             if sender_mail != '':
                 template = get_template('downloader/notify_sender.txt')
-                send_mail("Notification d'envoi de fichier via %s" % host,
+                send_mail("Confirmation de notification d'envoi de fichier via %s" % host,
                           template.render(context), 'notify@emencia.com',
                           (sender_mail,),
                           fail_silently=False)
