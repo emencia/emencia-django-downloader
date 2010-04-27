@@ -1,6 +1,5 @@
 {% extends "downloader/base.html" %}
 {% load i18n %}
-{% block title %}Upload{% endblock %}
 
 {% block header %}
 {% endblock %}
@@ -9,7 +8,7 @@
 {% block content %}
 <div>
     <form id="upload_form" action="{% url upload %}" method="post" enctype="multipart/form-data" accept-charset="utf-8" class="steps">
-        <h3>Upload a file</h3>
+	<h3>{% trans "Upload a file" %}</h3>
 	{{ form.as_p_dict.file }}
 	{{ form.as_p_dict.my_mail }}
 	{{ form.as_p_dict.notify1 }}
