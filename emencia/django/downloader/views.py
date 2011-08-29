@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 """views for emencia.django.downloader"""
-# Create your views here.
 import mimetypes
 import base64
 import logging
@@ -18,6 +17,8 @@ from django.utils.translation import ugettext as _
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest
 from django.core.cache import cache
 
+from django.middleware.csrf import get_token
+
 
 def get_file(request, slug):
 
@@ -28,8 +29,7 @@ def get_file(request, slug):
         if 'HTTP_AUTHORIZATION' in request.META:
             auth = request.META['HTTP_AUTHORIZATION'].split()
             if len(auth) == 2:
-                # NOTE: We are only support basic authentication for now.
-                #
+                # NOTE: We are only support basic authentication for now
                 if auth[0].lower() == "basic":
                     uname, passwd = base64.b64decode(auth[1]).split(':')
                     if passwd == download.password:
@@ -44,7 +44,7 @@ def get_file(request, slug):
             mimetype = mimetypes.types_map[".%s" % download.filename().split('.')[-1]]
         except KeyError:
             mimetype = 'application/octet-stream'
-        response = HttpResponse(download.file, mimetype=mimetype)
+        response = HttpResponse(open(download.file.file, "rb").read(), mimetype=mimetype)
         response['Content-Disposition'] = 'attachment; filename=%s' % download.filename()
     return response
 
@@ -100,21 +100,7 @@ def upload(request):
 
     data = {
         'form': form,
+        'csrf_token':  get_token(request)
     }
+
     return render_to_response('downloader/upload.html', data, RequestContext(request))
-
-
-def upload_progress(request):
-    """
-    Return JSON object with information about the progress of an upload.
-    """
-    if 'HTTP_X_PROGRESS_ID' in request.META:
-        progress_id = request.META['HTTP_X_PROGRESS_ID']
-        from django.utils import simplejson
-        cache_key = "%s_%s" % (request.META['REMOTE_ADDR'], progress_id)
-        data = cache.get(cache_key)
-        json = simplejson.dumps(data)
-        return HttpResponse(json)
-    else:
-        logging.error("Received progress report request without X-Progress-ID header. request.META: %s" % request.META)
-        return HttpResponseBadRequest('Server Error: You must provide X-Progress-ID header or query param.')

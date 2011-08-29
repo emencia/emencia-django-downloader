@@ -1,0 +1,22 @@
+<p class="form-item{% if field.errors %} has_errors{% endif %}" id="{{ field.auto_id }}_container" {% if field.field.widget.attrs.hidden %}style="display:none;"{% endif %}>
+
+    {% if field.errors %}
+        <p class="error field_error">{{ field.errors|join:"<br />" }}</p>
+    {% endif %}
+
+    <label for="{{ field.auto_id }}">
+        {%  if html_label %}
+            {{ field.label|safe }}
+        {% else %}
+            {{ field.label}}
+        {% endif %}
+
+        {% if field.field.required %}<span class="required">*</span>{% endif %}
+    </label>
+
+    {{ field }}
+
+    {% if field.help_text %}
+        <span class="help_text">{{ field.help_text|safe }}</span>
+    {% endif %}
+</p>

@@ -40,4 +40,10 @@ Instructions
     - Import urls into your root urls.py file:: 
     
         (r'^downloader/', include('emencia.django.downloader.urls')),
+
+    - Add the following three applications to your INSTALLED_APPS settings
+            'django.contrib.admin',
+            'django.contrib.staticfiles',
+            'emencia.django.downloader',
+    - Collect static files with
     
