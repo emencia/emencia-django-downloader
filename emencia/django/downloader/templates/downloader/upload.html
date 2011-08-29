@@ -5,7 +5,8 @@
 {% block header %}
 {% endblock %}
 {% block css %}
-    <link rel="stylesheet" type="text/css" media="screen" href="{{ STATIC_URL }}/fileuploader.css">
+    <link rel="stylesheet" type="text/css" media="screen" href="{{ STATIC_URL }}/css/fileuploader.css">
+    <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css" rel="stylesheet" type="text/css"/>
 {% endblock %}
 {% block content %}
 <div>
@@ -17,13 +18,14 @@
             </noscript>
         </div>
 
-        {% display_field form.file_id %}
         {% display_field form.my_mail %}
         {% display_field form.notify1 %}
         {% display_field form.notify2 %}
         {% display_field form.notify3 %}
         {% display_field form.comment %}
         {% display_field form.password %}
+
+        <input type="hidden" id="id_file_id" name="file_id" value=""/>
 
         <p>
             <span class="step"></span>
@@ -34,21 +36,20 @@
     </form>
 </div>
 
-<!--
 <div id="progress_container">
     <div id="progress_filename"></div>
     <div id="progress_bar">
         <div id="progress_indicator"></div>
     </div>
 </div>
--->
 
 {% endblock %}
 
 {% block javascript %}
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
-<script type="text/javascript" src="{{ STATIC_URL }}jquery.tablesorter.js"></script>
-<script type="text/javascript" src="{{ STATIC_URL }}fileuploader.js"></script>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}/js/jquery.tablesorter.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}/js/fileuploader.js"></script>
     
 <script type="text/javascript" charset="utf-8">
 //<![CDATA[
@@ -84,31 +85,32 @@ $.tablesorter.addParser({
     type: 'numeric'
 });
 
-$(document).ready(function()
-    {
-        $("#upload_table").tablesorter({
-            cssHeader: 'sortable',
-            cssAsc: 'sortedAsc',
-            cssDesc: 'sortedDesc',
-            widgets: ['zebra'],
-            headers: {3: {sorter: false}}
-        });
+$(document).ready(function() {
+        $("#progress_bar").progressbar();
 
         var uploader = new qq.FileUploader( {
             action: "{% url ajax_upload %}",
             element: $('#file-uploader')[0],
-            multiple: true,
+            multiple: false,
+            sizeLimit: 20971520,
             onComplete: function( id, fileName, responseJSON ) {
-              if( responseJSON.success )
-                $("#id_file_id").val(responseJSON.file_id);
-              else
-                alert("upload failed!");
+                if( responseJSON.success ) {
+                    $("#id_file_id").val(responseJSON.file_id);
+                    $("#progress_bar").hide('slow');
+                }
+                //TODO Error handling
             },
-            onAllComplete: function( uploads ) {
-              // uploads is an array of maps
-              // the maps look like this: { file: FileObject, response: JSONServerResponse }
-              alert( "All complete!" ) ;
+            onProgress: function(id, fileName, loaded, total){
+                var percentage = Math.floor(100 * loaded/total);
+                $("#progress_bar").progressbar({value: percentage});
             },
+            onSubmit: function(id, fileName){
+                $("#progress_bar").show();
+            },
+            onCancel: function(id, fileName){
+                $("#progress_bar").hide();
+            },
+        // messages
             params: {
               'csrf_token': '{{ csrf_token }}',
               'csrf_name': 'csrfmiddlewaretoken',
