@@ -7,10 +7,13 @@ from django.core.urlresolvers import reverse
 from django.core import mail
 from emencia.django.downloader.models import Download
 
+
+
 class DownloadsTest(TestCase):
     """
     Tests for emencia.django.downloader application
     """
+    TEST_FILE = "../tests/test.txt"
 
     def tearDown(self):
         try:
@@ -23,9 +26,9 @@ class DownloadsTest(TestCase):
         create some downloads
         """
 
-        data = {'file' : File(open("tests/test.txt"), "test.txt")}
+        data = {'file' : File(open(self.TEST_FILE), "test.txt")}
         download1 = Download.objects.create(**data)
-        data = {'file' : File(open("tests/test.txt"), "test.txt"),
+        data = {'file' : File(open(self.TEST_FILE), "test.txt"),
                 'password' : 'mysecret'}
         download2 = Download.objects.create(**data)
 
@@ -33,7 +36,7 @@ class DownloadsTest(TestCase):
         self.assertNotEqual(download1.slug, download2.slug)
 
         # try with a specify slug
-        data = {'file' : File(open("tests/test.txt"), "test.txt"),
+        data = {'file' : File(open(self.TEST_FILE), "test.txt"),
                 'slug' : 'my_slug_for_test_file'}
         download3 = Download.objects.create(**data)
         self.assertEqual(download3.slug, 'my_slug_for_test_file')
@@ -43,9 +46,9 @@ class DownloadsTest(TestCase):
         test to get the files
         """
 
-        data = {'file' : File(open("tests/test.txt"), "test.txt")}
+        data = {'file' : File(open(self.TEST_FILE), "test.txt")}
         download1 = Download.objects.create(**data)
-        data = {'file' : File(open("tests/test.txt"), "test.txt"),
+        data = {'file' : File(open(self.TEST_FILE), "test.txt"),
                 'password' : 'mysecret'}
         download2 = Download.objects.create(**data)
         response = self.client.get(reverse('get_file', args=[download1.slug]))
@@ -79,7 +82,7 @@ class DownloadsTest(TestCase):
         self.assertFormError(response, 'form', 'file', 'This field is required.')
 
         #good insert
-        file = open("tests/test.txt")
+        file = open(self.TEST_FILE)
         data = {'file' : file}
         response = self.client.post(reverse('upload'), data=data)
         file.close()
@@ -88,7 +91,7 @@ class DownloadsTest(TestCase):
         self.assertRedirects(response, reverse('upload_ok', args=[download.slug]),
                              target_status_code=200)
         #test with send mails
-        file = open("tests/test.txt")
+        file = open(self.TEST_FILE)
         data = {'file' : file,
                 'my_mail' : 'lafaye@emencia.com',
                 'notify1' : 'contact@emencia.com',
