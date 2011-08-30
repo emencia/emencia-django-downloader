@@ -2,7 +2,6 @@
 import base64
 import shutil
 from django.test import TestCase
-from django.core.files import File
 from django.core.urlresolvers import reverse
 from django.core import mail
 from emencia.django.downloader.models import Download, UploadedFile

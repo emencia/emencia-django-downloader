@@ -40,6 +40,9 @@
 
 <div id="progress_container">
     <div id="progress_filename"></div>
+    <div id="upload_message">
+        
+    </div>
     <div id="progress_bar">
         <div id="progress_indicator"></div>
     </div>
@@ -110,7 +113,11 @@ $(document).ready(function() {
                 $("#progress_bar").show();
             },
             onCancel: function(id, fileName){
+                alert("Cancel");
                 $("#progress_bar").hide();
+            },
+            showMessage: function(message){
+                $("#upload_message").text(message);
             },
         // messages
             params: {
