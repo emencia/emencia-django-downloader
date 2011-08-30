@@ -46,4 +46,5 @@ Instructions
             'django.contrib.staticfiles',
             'emencia.django.downloader',
     - Collect static files with
+    - Set MAX_FILE_UPLOAD_SIZE setting to the maximum size of the file in bytes
     

@@ -8,7 +8,8 @@ class DownloadForm(forms.ModelForm):
     """
     Form for a Download
     """
-    file_id = forms.CharField(widget=forms.HiddenInput, required=True)
+    file_id = forms.CharField(widget=forms.HiddenInput, required=True,
+                              error_messages={'required': _('Please upload at least one file')})
     my_mail = forms.EmailField(label=_('Notify me'), required=False)
     notify1 = forms.EmailField(label=_('E-mail 1'), required=False)
     notify2 = forms.EmailField(label=_('E-mail 2'), required=False)

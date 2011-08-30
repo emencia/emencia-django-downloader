@@ -25,6 +25,9 @@
         {% display_field form.comment %}
         {% display_field form.password %}
 
+        {% if form.file_id.errors %}
+        <p class="error field_error">{{ form.file_id.errors|join:"<br />" }}</p>
+        {% endif %}
         <input type="hidden" id="id_file_id" name="file_id" value=""/>
 
         <p>
@@ -92,7 +95,7 @@ $(document).ready(function() {
             action: "{% url ajax_upload %}",
             element: $('#file-uploader')[0],
             multiple: false,
-            sizeLimit: 20971520,
+            sizeLimit: {{ MAX_FILE_UPLOAD_SIZE }},
             onComplete: function( id, fileName, responseJSON ) {
                 if( responseJSON.success ) {
                     $("#id_file_id").val(responseJSON.file_id);

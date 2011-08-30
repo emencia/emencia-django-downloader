@@ -13,10 +13,8 @@ from django.core.urlresolvers import reverse
 from django.core.mail import send_mail
 from django.template import Context
 from django.template.loader import get_template
-from django.utils.translation import ugettext as _
-from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest
-from django.core.cache import cache
-
+from django.http import HttpResponse, HttpResponseRedirect
+from django.conf import settings
 from django.middleware.csrf import get_token
 
 
@@ -100,7 +98,8 @@ def upload(request):
 
     data = {
         'form': form,
-        'csrf_token':  get_token(request)
+        'csrf_token':  get_token(request),
+        'MAX_FILE_UPLOAD_SIZE': settings.MAX_FILE_UPLOAD_SIZE
     }
 
     return render_to_response('downloader/upload.html', data, RequestContext(request))

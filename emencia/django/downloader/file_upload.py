@@ -40,8 +40,8 @@ def data_upload(request):
         filepath = os.path.join(settings.MEDIA_ROOT, unique_filename)
         
         success = get_contents(upload, filepath, is_raw)
+
         file = UploadedFile()
-        
         file.file = filepath
         file.filename = filename
         file.uuid = unique_filename
