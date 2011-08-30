@@ -5,7 +5,7 @@ from django.test import TestCase
 from django.core.files import File
 from django.core.urlresolvers import reverse
 from django.core import mail
-from emencia.django.downloader.models import Download
+from emencia.django.downloader.models import Download, UploadedFile
 
 
 
@@ -26,18 +26,22 @@ class DownloadsTest(TestCase):
         create some downloads
         """
 
-        data = {'file' : File(open(self.TEST_FILE), "test.txt")}
+        file1 = UploadedFile.objects.create(file=self.TEST_FILE, filename="test.txt")
+        data = {'file': file1}
         download1 = Download.objects.create(**data)
-        data = {'file' : File(open(self.TEST_FILE), "test.txt"),
-                'password' : 'mysecret'}
+
+        file2 = UploadedFile.objects.create(file=self.TEST_FILE, filename="test.txt")
+        data = {'file': file2,
+                'password': 'mysecret'}
         download2 = Download.objects.create(**data)
 
         # test unique slug for same upload files
         self.assertNotEqual(download1.slug, download2.slug)
 
         # try with a specify slug
-        data = {'file' : File(open(self.TEST_FILE), "test.txt"),
-                'slug' : 'my_slug_for_test_file'}
+        file3 = UploadedFile.objects.create(file=self.TEST_FILE, filename="test.txt")
+        data = {'file': file3,
+                'slug': 'my_slug_for_test_file'}
         download3 = Download.objects.create(**data)
         self.assertEqual(download3.slug, 'my_slug_for_test_file')
 
@@ -46,9 +50,9 @@ class DownloadsTest(TestCase):
         test to get the files
         """
 
-        data = {'file' : File(open(self.TEST_FILE), "test.txt")}
+        data = {'file' : UploadedFile.objects.create(file=self.TEST_FILE, filename="test.txt")}
         download1 = Download.objects.create(**data)
-        data = {'file' : File(open(self.TEST_FILE), "test.txt"),
+        data = {'file' : UploadedFile.objects.create(file=self.TEST_FILE, filename="test.txt"),
                 'password' : 'mysecret'}
         download2 = Download.objects.create(**data)
         response = self.client.get(reverse('get_file', args=[download1.slug]))
@@ -76,29 +80,32 @@ class DownloadsTest(TestCase):
         """
         #wrong insert
         response = self.client.post(reverse('upload'))
-        self.assertContains(response, 'This field is required.', 1)
+        self.assertContains(response, 'Please upload at least one file', 1)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "downloader/upload.html")
-        self.assertFormError(response, 'form', 'file', 'This field is required.')
+        self.assertFormError(response, 'form', 'file_id', 'Please upload at least one file')
 
         #good insert
         file = open(self.TEST_FILE)
         data = {'file' : file}
-        response = self.client.post(reverse('upload'), data=data)
+        response = self.client.post(reverse('ajax_upload'), data=data)
         file.close()
+        self.assertEqual(response.status_code, 200)
+        uploaded_file = list(UploadedFile.objects.all())[-1]
+
+        response = self.client.post(reverse('upload'), data={'file_id': uploaded_file.uuid})
         self.assertEqual(response.status_code, 302)
+
         download = list(Download.objects.all())[-1]
         self.assertRedirects(response, reverse('upload_ok', args=[download.slug]),
                              target_status_code=200)
         #test with send mails
-        file = open(self.TEST_FILE)
-        data = {'file' : file,
+        data = {'file_id' : uploaded_file.uuid,
                 'my_mail' : 'lafaye@emencia.com',
                 'notify1' : 'contact@emencia.com',
                 'notify2' : 'contact2@emencia.com',
                 'notify3' : 'contact3@emencia.com',}
         response = self.client.post(reverse('upload'), data=data)
-        file.close()
         download = list(Download.objects.all())[-1]
         self.assertEquals(len(mail.outbox), 2)
         self.assertEquals(mail.outbox[0].subject, "Confirmation de notification d'envoi de fichier via testserver")
@@ -107,6 +114,6 @@ class DownloadsTest(TestCase):
         self.assert_('contact@emencia.com' in mail.outbox[1].to)
         self.assert_('contact2@emencia.com' in mail.outbox[1].to)
         self.assert_('contact3@emencia.com' in mail.outbox[1].to)
-        url = "http://testserver/%s" % download.slug
+        url = "http://testserver/downloader/%s" % download.slug
         self.assert_(url in mail.outbox[0].body)
         self.assert_(url in mail.outbox[1].body)
