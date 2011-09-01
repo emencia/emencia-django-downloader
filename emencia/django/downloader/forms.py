@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
+import uuid
+
 from django import forms
 from django.forms.widgets import Textarea
 from django.utils.translation import ugettext as _
 from models import Download, UploadedFile
 
-class DownloadForm(forms.ModelForm):
+class ShareForm(forms.ModelForm):
     """
     Form for a Download
     """
@@ -22,7 +24,25 @@ class DownloadForm(forms.ModelForm):
         exclude = ['last_download', 'creation', 'slug', 'file']
 
     def save(self):
-        object = super(DownloadForm, self).save(commit=False)
+        object = super(ShareForm, self).save(commit=False)
         object.file = UploadedFile.objects.get(uuid=self.cleaned_data['file_id'])
         object.save()
         return object
+
+class UploadForm(forms.ModelForm):
+    """
+    Form for a file upload
+    """
+    file = forms.FileField(required=True)
+
+    class Meta:
+        model = UploadedFile
+        exclude = ['filename', 'uuid']
+
+    def save(self):
+        object = super(UploadForm, self).save(commit=False)
+        object.filename = self.cleaned_data['file'].name
+        object.uuid = str(uuid.uuid4())
+        object.save()
+        return object
+

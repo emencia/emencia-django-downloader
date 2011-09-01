@@ -2,8 +2,7 @@
 """Urls for emencia.django.downloader"""
 from django.conf.urls.defaults import *
 
-from emencia.django.downloader.views import get_file, upload, upload_ok
-from emencia.django.downloader.file_upload import data_upload
+from emencia.django.downloader.views import get_file, upload, upload_ok, data_upload
 
 
 urlpatterns = patterns('',

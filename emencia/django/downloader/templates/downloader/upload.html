@@ -2,21 +2,42 @@
 {% load i18n %}
 {% load downloadertags %}
 
+
 {% block header %}
 {% endblock %}
 {% block css %}
-    <link rel="stylesheet" type="text/css" media="screen" href="{{ STATIC_URL }}/css/fileuploader.css">
-    <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css" rel="stylesheet" type="text/css"/>
+    <link rel="stylesheet" type="text/css" media="screen" href="{{ STATIC_URL }}/css/jquery.fileupload-ui.css">
+    <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.15/themes/base/jquery-ui.css" id="theme">
+
 {% endblock %}
+
 {% block content %}
 <div>
+
+    <div id="fileupload">
+        <form action="{% url ajax_upload %}" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="fileupload-buttonbar">
+                <label class="fileinput-button">
+                    <span>Add files...</span>
+                    <input type="file" name="file" multiple>
+                </label>
+                <button type="submit" class="start">Start upload</button>
+                <button type="reset" class="cancel">Cancel upload</button>
+                <button type="button" class="delete">Delete files</button>
+            </div>
+        </form>
+        <div class="fileupload-content">
+            <table class="files"></table>
+            <div class="fileupload-progressbar"></div>
+        </div>
+    </div>
+
+
+
     <form id="upload_form" action="{% url upload %}" method="post" accept-charset="utf-8" class="steps">
         
-        <div id="file-uploader">
-            <noscript>
-                <p>Please enable JavaScript to use file uploader.</p>
-            </noscript>
-        </div>
         {% if form.file_id.errors %}
             <p class="error field_error">{{ form.file_id.errors|join:"<br />" }}</p>
         {% endif %}
@@ -38,96 +59,25 @@
     </form>
 </div>
 
-<div id="progress_container">
-    <div id="progress_filename"></div>
-    <div id="upload_message">
-        
-    </div>
-    <div id="progress_bar">
-        <div id="progress_indicator"></div>
-    </div>
-</div>
+
+<!-- Templates -->
+{% include "downloader/js_templates.jqtmpl" %}
 
 {% endblock %}
 
 {% block javascript %}
+<!-- Libraries -->
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
-<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script>
-<script type="text/javascript" src="{{ STATIC_URL }}/js/jquery.tablesorter.js"></script>
-<script type="text/javascript" src="{{ STATIC_URL }}/js/fileuploader.js"></script>
-    
-<script type="text/javascript" charset="utf-8">
-//<![CDATA[
-var fileSizePattern = /^(\d+(?:\.\d+)*)\s*([egkmpt])b?$/i;
-$.tablesorter.addParser({
-    id: 'filesize',
-    is: function(s) {
-        return fileSizePattern.test(s);
-    },
-    format: function(s) {
-        var groups = fileSizePattern.exec(s);
-        if (groups != null)
-        {
-            var size = new Number(groups[1]);
-            var unit = groups[2].toLowerCase();
-            switch (unit) {
-                case 'k':
-                    return size * 1024;
-                case 'm':
-                    return size * Math.pow(1024, 2);
-                case 'g':
-                    return size * Math.pow(1024, 3);
-                case 't':
-                    return size * Math.pow(1024, 4);
-                case 'p':
-                    return size * Math.pow(1024, 5);
-                case 'e':
-                    return size * Math.pow(1024, 6);
-                return size;
-            }
-        }
-    },
-    type: 'numeric'
-});
+<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jqueryui/1.8.15/jquery-ui.min.js"></script>
+<script src="//ajax.aspnetcdn.com/ajax/jquery.templates/beta1/jquery.tmpl.min.js"></script>
 
-$(document).ready(function() {
-        $("#progress_bar").progressbar();
+<script type="text/javascript" src="{{ STATIC_URL }}/js/jquery.iframe-transport.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}/js/jquery.fileupload.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}/js/jquery.fileupload-ui.js"></script>
+<!-- Custom code -->
+<script type="text/javascript" src="{{ STATIC_URL }}/js/constants.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}/js/application.js"></script>
 
-        var uploader = new qq.FileUploader( {
-            action: "{% url ajax_upload %}",
-            element: $('#file-uploader')[0],
-            multiple: false,
-            sizeLimit: {{ MAX_FILE_UPLOAD_SIZE }},
-            onComplete: function( id, fileName, responseJSON ) {
-                if( responseJSON.success ) {
-                    $("#id_file_id").val(responseJSON.file_id);
-                    $("#progress_bar").hide('slow');
-                }
-                //TODO Error handling
-            },
-            onProgress: function(id, fileName, loaded, total){
-                var percentage = Math.floor(100 * loaded/total);
-                $("#progress_bar").progressbar({value: percentage});
-            },
-            onSubmit: function(id, fileName){
-                $("#progress_bar").show();
-            },
-            onCancel: function(id, fileName){
-                alert("Cancel");
-                $("#progress_bar").hide();
-            },
-            showMessage: function(message){
-                $("#upload_message").text(message);
-            },
-        // messages
-            params: {
-              'csrf_token': '{{ csrf_token }}',
-              'csrf_name': 'csrfmiddlewaretoken',
-              'csrf_xname': 'X-CSRFToken',
-            },
-          });
-    });
-//]]>
-</script>
+
 {% endblock %}
 

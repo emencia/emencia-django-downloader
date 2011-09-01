@@ -4,16 +4,17 @@ import mimetypes
 import base64
 import logging
 import datetime
+import json
 
 from emencia.django.downloader.models import Download
-from emencia.django.downloader.forms import DownloadForm
+from emencia.django.downloader.forms import ShareForm, UploadForm
 from django.template import RequestContext
 from django.shortcuts import get_object_or_404, render_to_response
 from django.core.urlresolvers import reverse
 from django.core.mail import send_mail
 from django.template import Context
 from django.template.loader import get_template
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest
 from django.conf import settings
 from django.middleware.csrf import get_token
 
@@ -42,7 +43,7 @@ def get_file(request, slug):
             mimetype = mimetypes.types_map[".%s" % download.filename().split('.')[-1]]
         except KeyError:
             mimetype = 'application/octet-stream'
-        response = HttpResponse(open(download.file.file, "rb").read(), mimetype=mimetype)
+        response = HttpResponse(download.file.file.read(), mimetype=mimetype)
         response['Content-Disposition'] = 'attachment; filename=%s' % download.filename()
     return response
 
@@ -57,7 +58,7 @@ def upload_ok(request, slug):
 
 def upload(request):
     if request.method == 'POST':
-        form = DownloadForm(request.POST, request.FILES)
+        form = ShareForm(request.POST, request.FILES)
         if form.is_valid():
             logging.info("Upload form is valid: %s" % form)
             download = form.save()
@@ -94,7 +95,7 @@ def upload(request):
             logging.error("form errors: %s" % form.errors)
 
     else:
-        form = DownloadForm()
+        form = ShareForm()
 
     data = {
         'form': form,
@@ -103,3 +104,23 @@ def upload(request):
     }
 
     return render_to_response('downloader/upload.html', data, RequestContext(request))
+
+
+def data_upload(request):
+    if request.method == "GET":
+        #Return an empty list when plug-in requests a list of already uploaded files
+        return HttpResponse("[]")
+
+    if request.method == "POST":
+        form = UploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            obj = form.save()
+            # let Ajax Upload know whether we saved it or not
+
+            ret_json = [{"name": obj.filename, "size": obj.file.size, "delete_type":"DELETE", 'file_id': obj.uuid}]
+            return HttpResponse(json.dumps(ret_json))
+        else:
+            return HttpResponseBadRequest()
+
+    return HttpResponseBadRequest()
+

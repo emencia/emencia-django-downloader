@@ -9,6 +9,7 @@ except ImportError:
     from md5 import new as md5
 
 from django.db import models
+from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
 
@@ -17,14 +18,9 @@ class UploadedFile(models.Model):
     Need a separate model for a file since it comes in a separate request over AJAX.
     So first the file gets uploaded and then we associate this file with the form containing email information
     """
-    file = models.FilePathField(_('file'))
+    file = models.FileField(_('file'), upload_to=settings.MEDIA_ROOT)
     filename = models.CharField(max_length=255)
     uuid = models.CharField(max_length=255)
-
-    def save(self, *args, **kwargs):
-        if self.uuid == '':
-            self.uuid = uuid.uuid4()
-        super(UploadedFile, self).save(*args, **kwargs)
 
 
 class Download(models.Model):
@@ -50,7 +46,7 @@ class Download(models.Model):
 
     def save(self, *args, **kwargs):
         if self.slug == '':
-            name = "%s%s%i" % (self.file.file, datetime.utcnow(), random.randint(0, 100000))
+            name = "%s%s%i" % (self.file.filename, datetime.utcnow(), random.randint(0, 100000))
             self.slug = md5(name).hexdigest()
 
         return super(Download, self).save(*args, **kwargs)
