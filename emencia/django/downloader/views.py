@@ -6,8 +6,6 @@ import logging
 import datetime
 import json
 
-from emencia.django.downloader.models import Download
-from emencia.django.downloader.forms import ShareForm, UploadForm
 from django.template import RequestContext
 from django.shortcuts import get_object_or_404, render_to_response
 from django.core.urlresolvers import reverse
@@ -18,9 +16,14 @@ from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadReque
 from django.conf import settings
 from django.middleware.csrf import get_token
 
+from emencia.django.downloader.models import Download, UploadedFile
+from emencia.django.downloader.forms import ShareForm, UploadForm
+
 
 def get_file(request, slug):
-
+    """
+    Retrieve the uploaded file by the slug
+    """
     download = get_object_or_404(Download, slug=slug)
     get_file = True
     if download.password != '':
@@ -47,7 +50,11 @@ def get_file(request, slug):
         response['Content-Disposition'] = 'attachment; filename=%s' % download.filename()
     return response
 
+
 def upload_ok(request, slug):
+    """
+    Display the confirmation page
+    """
     download = get_object_or_404(Download, slug=slug)
     data = {
         'download': download,
@@ -56,7 +63,11 @@ def upload_ok(request, slug):
     }
     return render_to_response('downloader/upload_ok.html', data, RequestContext(request))
 
+
 def upload(request):
+    """
+    Process notifications
+    """
     if request.method == 'POST':
         form = ShareForm(request.POST, request.FILES)
         if form.is_valid():
@@ -106,7 +117,22 @@ def upload(request):
     return render_to_response('downloader/upload.html', data, RequestContext(request))
 
 
+def delete_uploaded(request, file_id):
+    """
+    Handle the deletion of the already uploaded file
+    """
+    if request.method == "DELETE":
+        uploaded_file = get_object_or_404(UploadedFile, uuid=file_id)
+        uploaded_file.delete()
+
+        return HttpResponse(json.dumps(True))
+    return HttpResponseBadRequest()
+
+
 def data_upload(request):
+    """
+    Handle file upload
+    """
     if request.method == "GET":
         #Return an empty list when plug-in requests a list of already uploaded files
         return HttpResponse("[]")
@@ -117,7 +143,8 @@ def data_upload(request):
             obj = form.save()
             # let Ajax Upload know whether we saved it or not
 
-            ret_json = [{"name": obj.filename, "size": obj.file.size, "delete_type":"DELETE", 'file_id': obj.uuid}]
+            ret_json = [{"name": obj.filename, "size": obj.file.size, "delete_type":"DELETE", 'file_id': obj.uuid,
+                        'delete_url': reverse("delete_uploaded", kwargs={'file_id': obj.uuid})}]
             return HttpResponse(json.dumps(ret_json))
         else:
             return HttpResponseBadRequest()

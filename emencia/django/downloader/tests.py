@@ -1,18 +1,18 @@
 """Unit tests for emencia.django.downloader"""
 import base64
 import shutil
+from django.utils import simplejson
 from django.test import TestCase
 from django.core.urlresolvers import reverse
 from django.core import mail
 from emencia.django.downloader.models import Download, UploadedFile
 
 
-
 class DownloadsTest(TestCase):
     """
     Tests for emencia.django.downloader application
     """
-    TEST_FILE = "../tests/test.txt"
+    TEST_FILE = "tests/test.txt"
 
     def tearDown(self):
         try:
@@ -73,23 +73,40 @@ class DownloadsTest(TestCase):
         self.failUnlessEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'downloader/upload.html')
 
-    def test_create_download_by_view(self):
-        """
-        test the upload view
-        """
-        #wrong insert
+    def test_submit_form_no_file(self):
         response = self.client.post(reverse('upload'))
         self.assertContains(response, 'Please upload at least one file', 1)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "downloader/upload.html")
         self.assertFormError(response, 'form', 'file_id', 'Please upload at least one file')
 
-        #good insert
+    def test_upload_file(self):
         file = open(self.TEST_FILE)
         data = {'file' : file}
         response = self.client.post(reverse('ajax_upload'), data=data)
         file.close()
         self.assertEqual(response.status_code, 200)
+        json_response = simplejson.loads(response.content)
+        self.assertEquals(1, len(UploadedFile.objects.filter(uuid=json_response[0]['file_id'])))
+
+    def test_delete_uploaded_file(self):
+        file = open(self.TEST_FILE)
+        data = {'file' : file}
+        response = self.client.post(reverse('ajax_upload'), data=data)
+        file.close()
+        self.assertEqual(response.status_code, 200)
+        json_response = simplejson.loads(response.content)
+
+        self.assertEquals(1, len(UploadedFile.objects.filter(uuid=json_response[0]['file_id'])))
+
+        response = self.client.delete(reverse('delete_uploaded', kwargs={'file_id': json_response[0]['file_id']}))
+        self.assertEquals(response.status_code, 200)
+        self.assertEquals(response.content, 'true')
+        self.assertEquals(0, len(UploadedFile.objects.filter(uuid=json_response[0]['file_id'])))
+
+    
+    def test_submit_upload_form_no_notifications(self):
+        self.test_upload_file()
         uploaded_file = list(UploadedFile.objects.all())[-1]
 
         response = self.client.post(reverse('upload'), data={'file_id': uploaded_file.uuid})
@@ -98,6 +115,11 @@ class DownloadsTest(TestCase):
         download = list(Download.objects.all())[-1]
         self.assertRedirects(response, reverse('upload_ok', args=[download.slug]),
                              target_status_code=200)
+        
+    def test_submit_upload_form_with_emails(self):
+        self.test_upload_file()
+        uploaded_file = list(UploadedFile.objects.all())[-1]
+
         #test with send mails
         data = {'file_id' : uploaded_file.uuid,
                 'my_mail' : 'lafaye@emencia.com',
@@ -106,13 +128,16 @@ class DownloadsTest(TestCase):
                 'notify3' : 'contact3@emencia.com',}
         response = self.client.post(reverse('upload'), data=data)
         download = list(Download.objects.all())[-1]
+
         self.assertEquals(len(mail.outbox), 2)
         self.assertEquals(mail.outbox[0].subject, "Confirmation de notification d'envoi de fichier via testserver")
         self.assertEquals(mail.outbox[1].subject, "Notification d'envoi de fichier via testserver")
+
         self.assert_('lafaye@emencia.com' in mail.outbox[0].to)
         self.assert_('contact@emencia.com' in mail.outbox[1].to)
         self.assert_('contact2@emencia.com' in mail.outbox[1].to)
         self.assert_('contact3@emencia.com' in mail.outbox[1].to)
         url = "http://testserver/downloader/%s" % download.slug
+
         self.assert_(url in mail.outbox[0].body)
         self.assert_(url in mail.outbox[1].body)
