@@ -11,6 +11,11 @@ $(document).ready(function() {
 				    name: 'file_id',
 				    value: data.result[0].file_id}).appendTo("#upload_form")
 		    number_id++;
+                })
+		.bind('fileuploaddestroy', function (e, data) {
+		    var file_id = data.url.replace('/delete_uploaded/','').replace('/','');
+		    console.log($('input[value="'+file_id+'"]'));
+		    $('input[value="'+file_id+'"]').remove();
 		});
 
         // Load existing files:
