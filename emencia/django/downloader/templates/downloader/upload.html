@@ -37,7 +37,7 @@
 
 
     <form id="upload_form" action="{% url upload %}" method="post" accept-charset="utf-8" class="steps">
-        
+
         {% if form.file_id.errors %}
             <p class="error field_error">{{ form.file_id.errors|join:"<br />" }}</p>
         {% endif %}
@@ -75,9 +75,14 @@
 <script type="text/javascript" src="{{ STATIC_URL }}/js/jquery.fileupload.js"></script>
 <script type="text/javascript" src="{{ STATIC_URL }}/js/jquery.fileupload-ui.js"></script>
 <!-- Custom code -->
-<script type="text/javascript" src="{{ STATIC_URL }}/js/constants.js"></script>
-<script type="text/javascript" src="{{ STATIC_URL }}/js/application.js"></script>
+<script type="text/javascript">
+    downloader = Object();
+    downloader.constants = Object();
 
+    downloader.constants.MAX_FILE_UPLOAD_SIZE = "{{ MAX_FILE_UPLOAD_SIZE }}";
+    downloader.constants.MAX_NUMBER_OF_FILES = "{{ MAX_NUMBER_OF_FILES }}";
+</script>
+<script type="text/javascript" src="{{ STATIC_URL }}/js/application.js"></script>
 
 {% endblock %}
 

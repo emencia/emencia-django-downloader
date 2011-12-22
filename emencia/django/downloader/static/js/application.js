@@ -2,7 +2,8 @@ var fileSizePattern = /^(\d+(?:\.\d+)*)\s*([egkmpt])b?$/i;
 
 $(document).ready(function() {
         // Initialize the jQuery File Upload widget:
-        $('#fileupload').fileupload({maxNumberOfFiles: 1, maxFileSize: downloader.constants.MAX_FILE_UPLOAD_SIZE})
+        $('#fileupload').fileupload({maxNumberOfFiles: downloader.constants.MAX_NUMBER_OF_FILES,
+				     maxFileSize: downloader.constants.MAX_FILE_UPLOAD_SIZE})
                 .bind('fileuploaddone', function (e, data) {
                     $("#id_file_id").val(data.result[0].file_id);
                 });

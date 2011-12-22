@@ -111,7 +111,8 @@ def upload(request):
     data = {
         'form': form,
         'csrf_token':  get_token(request),
-        'MAX_FILE_UPLOAD_SIZE': settings.MAX_FILE_UPLOAD_SIZE
+        'MAX_FILE_UPLOAD_SIZE': settings.MAX_FILE_UPLOAD_SIZE,
+        'MAX_NUMBER_OF_FILES': settings.MAX_NUMBER_OF_FILES
     }
 
     return render_to_response('downloader/upload.html', data, RequestContext(request))
