@@ -1,6 +1,5 @@
 """Models for emencia.django.downloader"""
 import random
-import uuid
 from datetime import datetime
 try:
     from hashlib import md5
