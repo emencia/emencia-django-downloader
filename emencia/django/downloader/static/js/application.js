@@ -2,11 +2,16 @@ var fileSizePattern = /^(\d+(?:\.\d+)*)\s*([egkmpt])b?$/i;
 
 $(document).ready(function() {
         // Initialize the jQuery File Upload widget:
+	var number_id = 0
         $('#fileupload').fileupload({maxNumberOfFiles: downloader.constants.MAX_NUMBER_OF_FILES,
 				     maxFileSize: downloader.constants.MAX_FILE_UPLOAD_SIZE})
                 .bind('fileuploaddone', function (e, data) {
-                    $("#id_file_id").val(data.result[0].file_id);
-                });
+		    $('<input />', {type: 'hidden',
+				    id: '#id_file_id_'+number_id,
+				    name: 'file_id',
+				    value: data.result[0].file_id}).appendTo("#upload_form")
+		    number_id++;
+		});
 
         // Load existing files:
         $.getJSON($('#fileupload form').prop('action'), function (files) {

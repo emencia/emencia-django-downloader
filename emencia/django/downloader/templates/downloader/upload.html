@@ -41,7 +41,6 @@
         {% if form.file_id.errors %}
             <p class="error field_error">{{ form.file_id.errors|join:"<br />" }}</p>
         {% endif %}
-        <input type="hidden" id="id_file_id" name="file_id" value=""/>
 
         {% display_field form.my_mail %}
         {% display_field form.notify1 %}
