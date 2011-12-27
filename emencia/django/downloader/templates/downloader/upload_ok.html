@@ -9,18 +9,24 @@
 {% block content %}
 <div>
 <p>
-Nous vous confirmons le dépôt du fichier "{{ download.filename }}" effectué le {{ download.creation }}
+Nous vous confirmons le dépôt des fichiers effectué le {{ download.creation }}
 </p>
 
 <p>
-Votre fichier sera accessible à l'adresse suivante:
+Vos fichiers seront accessibles aux adresses suivantes:
 </p>
+
 <p>
-<a href="http://{{ host }}{{ url }}">http://{{ host }}{{ url }}</a>
+<ul>
+{% for download in download_group.downloads.all %}
+<li>{{ download.file.filename }}: <a href="http://{{ host }}{% url get_file download.slug %}">http://{{ host }}{% url get_file download.slug %}</a></li>
+{% endfor %}
+</ul>
 </p>
+
 {% if download.password %}
 <p>
-Le fichier est protégé par le mot de passe suivant: {{ download.password }}
+Les fichiers sont protégé par le mot de passe suivant: {{ download.password }}
 </p>
 {% endif %}
 <p>

@@ -16,7 +16,7 @@ from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadReque
 from django.conf import settings
 from django.middleware.csrf import get_token
 
-from emencia.django.downloader.models import Download, UploadedFile
+from emencia.django.downloader.models import Download, UploadedFile, DownloadGroup
 from emencia.django.downloader.forms import ShareForm, UploadForm
 
 
@@ -55,11 +55,10 @@ def upload_ok(request, slug):
     """
     Display the confirmation page
     """
-    download = get_object_or_404(Download, slug=slug)
+    download = get_object_or_404(DownloadGroup, slug=slug)
     data = {
-        'download': download,
+        'download_group': download,
         'host': request.get_host(),
-        'url': reverse('get_file', args=[download.slug]),
     }
     return render_to_response('downloader/upload_ok.html', data, RequestContext(request))
 
