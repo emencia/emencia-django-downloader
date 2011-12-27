@@ -24,14 +24,11 @@ class ShareForm(forms.ModelForm):
         exclude = ['creation', 'slug', 'downloads']
 
     def save(self):
-        object = super(ShareForm, self).save(commit=False)
-        object.save()
+        object = super(ShareForm, self).save()
         for id in dict(self.data)['file_id']:
             file = UploadedFile.objects.get(uuid=id)
-            download = Download(file=file,
-                                password=self.cleaned_data['password'])
-            download.save()
-            object.downloads.add(download)
+            object.downloads.create(file=file,
+                                    password=self.cleaned_data['password'])
         object.save()
         return object
 
