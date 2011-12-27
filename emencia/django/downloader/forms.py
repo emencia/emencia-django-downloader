@@ -4,7 +4,7 @@ import uuid
 from django import forms
 from django.forms.widgets import Textarea
 from django.utils.translation import ugettext as _
-from models import Download, UploadedFile
+from models import Download, UploadedFile, DownloadGroup
 
 class ShareForm(forms.ModelForm):
     """
@@ -20,12 +20,18 @@ class ShareForm(forms.ModelForm):
                               required=False)
 
     class Meta:
-        model = Download
-        exclude = ['last_download', 'creation', 'slug', 'file']
+        model = DownloadGroup
+        exclude = ['creation', 'slug', 'downloads']
 
     def save(self):
         object = super(ShareForm, self).save(commit=False)
-        object.file = UploadedFile.objects.get(uuid=self.cleaned_data['file_id'])
+        object.save()
+        for id in dict(self.data)['file_id']:
+            file = UploadedFile.objects.get(uuid=id)
+            download = Download(file=file,
+                                password=self.cleaned_data['password'])
+            download.save()
+            object.downloads.add(download)
         object.save()
         return object
 

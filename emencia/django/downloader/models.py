@@ -54,10 +54,12 @@ class DownloadGroup(models.Model):
     """
     Group of Download
     """
+
     downloads = models.ManyToManyField(Download)
     password = models.CharField(_('password'), max_length=50, blank=True)
     slug = models.SlugField(_('slug'), help_text=_('Used for the URLs'))
     creation = models.DateTimeField(_('creation date'), auto_now_add=True)
+
     def __unicode__(self):
         return self.slug
 
@@ -74,6 +76,4 @@ class DownloadGroup(models.Model):
             self.slug = md5(name).hexdigest()
 
         return super(DownloadGroup, self).save(*args, **kwargs)
-
-
 
