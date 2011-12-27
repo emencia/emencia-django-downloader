@@ -50,5 +50,30 @@ class Download(models.Model):
 
         return super(Download, self).save(*args, **kwargs)
 
+class DownloadGroup(models.Model):
+    """
+    Group of Download
+    """
+    downloads = models.ManyToManyField(Download)
+    password = models.CharField(_('password'), max_length=50, blank=True)
+    slug = models.SlugField(_('slug'), help_text=_('Used for the URLs'))
+    creation = models.DateTimeField(_('creation date'), auto_now_add=True)
+    def __unicode__(self):
+        return self.slug
+
+    class Meta:
+        verbose_name = _('downloads group')
+        verbose_name_plural = _('downloads groups')
+
+    def filename(self):
+        return self.slug
+
+    def save(self, *args, **kwargs):
+        if self.slug == '':
+            name = "%s%i" % (datetime.utcnow(), random.randint(0, 100000))
+            self.slug = md5(name).hexdigest()
+
+        return super(DownloadGroup, self).save(*args, **kwargs)
+
 
 
