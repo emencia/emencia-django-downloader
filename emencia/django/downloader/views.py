@@ -76,9 +76,8 @@ def upload(request):
             logging.info("Saved upload: %s" % upload)
             host = request.get_host()
             sender_mail = form.cleaned_data['my_mail']
-            context = Context({'download': download,
+            context = Context({'download_group': download,
                                'host': request.get_host(),
-                               'url': reverse('get_file', args=[download.slug]),
                                'sender': sender_mail,
                                'comment': form.cleaned_data['comment']
                               })

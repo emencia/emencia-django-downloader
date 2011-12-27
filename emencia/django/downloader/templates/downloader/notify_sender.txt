@@ -1,13 +1,15 @@
 Bonjour,
 
-Nous vous confirmons le dépôt du fichier "{{ download.filename }}" effectué le {{ download.creation }}
+Nous vous confirmons le dépôt des fichiers effectué le {{ download.creation }}
 
-Votre fichier sera accessible à l'adresse suivante:
+Vos fichiers seront accessible àux adresses suivante:
 
-http://{{ host }}{{ url }}
+{% for download in download_group.downloads.all %}
+{{ download.file.filename }}: http://{{ host }}{% url get_file download.slug %}
+{% endfor %}
 
 {% if download.password %}
-Le fichier est protégé par le mot de passe suivant: {{ download.password }}
+Les fichiers sont protégé par le mot de passe suivant: {{ download.password }}
 {% endif %}
 
 A bientôt sur {{ host }}
