@@ -4,7 +4,10 @@ import mimetypes
 import base64
 import logging
 import datetime
-import json
+try:
+    import json
+except:
+    import simplejson as json
 
 from django.template import RequestContext
 from django.shortcuts import get_object_or_404, render_to_response
