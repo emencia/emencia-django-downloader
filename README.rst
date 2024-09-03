@@ -1,3 +1,5 @@
+**IMPORTANT NOTICE: This application is unmaintained and archived**
+
 ========================================
 Emencia Django Emencia.django.downloader
 ========================================
